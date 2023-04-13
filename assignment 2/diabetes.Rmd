@@ -1,0 +1,94 @@
+---
+title: "Diabetes"
+author: "Report"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# Load data
+df <- read.csv('C:/Users/fvcds/Desktop/Project/diabetes.csv')
+```
+
+```{r}
+# Set seed and take a random sample of 25 observations
+set.seed(1234)
+sample <- df[sample(nrow(df), 25), ]
+```
+
+
+```{r}
+# Calculate mean and maximum glucose for sample and population
+pop_mean_glucose <- mean(df$Glucose)
+pop_max_glucose <- max(df$Glucose)
+
+sample_mean_glucose <- mean(sample$Glucose)
+sample_max_glucose <- max(sample$Glucose)
+
+# Create bar chart to compare mean and maximum glucose
+barplot(c(pop_mean_glucose, sample_mean_glucose, pop_max_glucose, sample_max_glucose), 
+        names.arg = c('Population Mean', 'Sample Mean', 'Population Max', 'Sample Max'), 
+        col = c('blue', 'red', 'blue', 'red'), 
+        legend.text = 'Glucose', 
+        ylim = c(0, 250))
+```
+
+```{r}
+# Find the 98th percentile of BMI for sample and population
+pop_98th_percentile_bmi <- quantile(df$BMI, 0.98)
+sample_98th_percentile_bmi <- quantile(sample$BMI, 0.98)
+
+# Create boxplot to compare 98th percentile of BMI
+boxplot(df$BMI, sample$BMI, 
+        names = c('Population', 'Sample'), 
+        main = 'BMI 98th Percentile', 
+        col = c('blue', 'red'))
+```
+
+```{r}
+# Create 500 bootstrap samples of 150 observations each and compare the statistics with the population statistics for BloodPressure
+n_samples <- 500
+sample_size <- 150
+
+bp_pop_mean <- mean(df$BloodPressure)
+bp_pop_sd <- sd(df$BloodPressure)
+bp_pop_25th_percentile <- quantile(df$BloodPressure, 0.25)
+bp_pop_75th_percentile <- quantile(df$BloodPressure, 0.75)
+
+bp_sample_means <- numeric(n_samples)
+bp_sample_sds <- numeric(n_samples)
+bp_sample_25th_percentiles <- numeric(n_samples)
+bp_sample_75th_percentiles <- numeric(n_samples)
+
+for (i in 1:n_samples) {
+  sample <- sample(df$BloodPressure, size = sample_size, replace = TRUE)
+  bp_sample_means[i] <- mean(sample)
+  bp_sample_sds[i] <- sd(sample)
+  bp_sample_25th_percentiles[i] <- quantile(sample, 0.25)
+  bp_sample_75th_percentiles[i] <- quantile(sample, 0.75)
+}
+
+```
+
+```{r}
+# Create plots to compare the statistics of the 500 bootstrap samples with the population statistics
+par(mfrow = c(2, 2))
+
+hist(bp_sample_means, main = 'Blood Pressure Mean', xlab = 'Mean', col = 'red')
+abline(v = bp_pop_mean, col = 'blue')
+
+hist(bp_sample_sds, main = 'Blood Pressure Standard Deviation', xlab = 'Standard Deviation', col = 'red')
+abline(v = bp_pop_sd, col = 'blue')
+
+hist(bp_sample_25th_percentiles, main = 'Blood Pressure 25th Percentile', xlab = '25th Percentile', col = 'red')
+abline(v = bp_pop_25th_percentile, col = 'blue')
+
+hist(bp_sample_75th_percentiles, main = 'Blood Pressure 75th Percentile', xlab = '75th Percentile', col = 'red')
+abline(v = bp_pop_75th_percentile, col = 'blue')
+
+```
+
